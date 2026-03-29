@@ -10,7 +10,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Real Estate Portal",
-  description: "Find your perfect home with our comprehensive property listings.",
+  description: "Your premier destination for premium real estate listings.",
 };
 
 import Header from "@/components/layout/Header";
