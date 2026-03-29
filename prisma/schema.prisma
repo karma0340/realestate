@@ -1,0 +1,128 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Emulate enums as strings since SQLite doesn't natively support Prisma enums
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  phone         String?
+  password      String?
+  role          String    @default("BUYER") // "BUYER", "SELLER", "AGENT", "ADMIN"
+  createdAt     DateTime  @default(now())
+  accounts      Account[]
+  sessions      Session[]
+  
+  listings      Listing[]
+  wishlist      Wishlist[]
+  enquiries     Enquiry[]
+  savedSearches SavedSearch[]
+}
+
+model Listing {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  price         Float
+  pricePerSqft  Float?
+  type          String // "APARTMENT", "VILLA", "PLOT", "COMMERCIAL", "PG"
+  listingType   String // "SALE", "RENT"
+  status        String   @default("PENDING") // "PENDING", "ACTIVE", "REJECTED", "EXPIRED"
+  bhk           Int?
+  area          Float
+  floor         Int?
+  totalFloors   Int?
+  furnished     String // "FURNISHED", "SEMI_FURNISHED", "UNFURNISHED"
+  facing        String?
+  city          String
+  locality      String
+  pincode       String
+  latitude      Float?
+  longitude     Float?
+  
+  // SQLite doesn't support String[] arrays natively, so we store JSON text
+  images        String
+  amenities     String
+  
+  possession    String
+  
+  postedBy      User     @relation(fields: [userId], references: [id])
+  userId        String
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  views         Int      @default(0)
+  
+  enquiries     Enquiry[]
+  wishlistedBy  Wishlist[]
+}
+
+model Enquiry {
+  id        String   @id @default(cuid())
+  message   String 
+  
+  sender    User     @relation(fields: [userId], references: [id])
+  userId    String
+  
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+  
+  createdAt DateTime @default(now())
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+
+  @@unique([userId, listingId])
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  // SQLite doesn't support JSON naturally in Prisma, so store serialized JSON string
+  filters   String
+  alertOn   Boolean  @default(true)
+}
