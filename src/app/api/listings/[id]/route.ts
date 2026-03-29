@@ -3,18 +3,17 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const listingId = params.id;
+    const listingId = (await params).id;
 
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
       include: {
         postedBy: {
           select: { id: true, name: true, image: true, phone: true }
-        },
-        amenities: true,
+        }
       }
     });
 
@@ -44,15 +43,17 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
 
     // TODO: Verify ownership via NextAuth session
 
     const updated = await prisma.listing.update({
-      where: { id: params.id },
+      where: { id },
+
       data: body,
     });
 
@@ -68,13 +69,14 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // TODO: Verify ownership or admin via NextAuth session
 
     await prisma.listing.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ success: true, message: "Listing deleted" });

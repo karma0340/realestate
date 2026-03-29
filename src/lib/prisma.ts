@@ -10,7 +10,7 @@ const globalForPrisma = globalThis as unknown as {
 const db = new Database("./prisma/dev.db");
 
 // 2. Instantiate the adapter
-const adapter = new PrismaBetterSqlite3(db);
+const adapter = new PrismaBetterSqlite3(db as any);
 
 // 3. Create the singleton instance
 export const prisma =

@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       status: "ACTIVE", // Only show active listings publicly
     };
 
-    if (city) where.city = { contains: city, mode: "insensitive" };
+    if (city) where.city = { contains: city };
     if (type) where.type = type as any;
     if (furnished) where.furnished = furnished as any;
     if (bhk) where.bhk = parseInt(bhk);
